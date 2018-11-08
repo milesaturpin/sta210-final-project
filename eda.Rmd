@@ -1,0 +1,30 @@
+---
+title: "Exploratory Data Analysis"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Exploratory Data Analysis
+
+NOTE: split up to avoid merge conflicts
+### Miles 
+
+```{r}
+
+```
+
+### Shamikh
+
+```{r}
+
+```
+
+### Shrey
+
+```{r}
+
+```
+
