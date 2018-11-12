@@ -1,0 +1,21 @@
+---
+title: "Proposal"
+author: "Miles Turpin, Shamikh Hossain, Shrey Gupta"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Introduction
+
+# Data
+
+```{r}
+
+```
+
+# Analysis
+
+# Reference
