@@ -6,6 +6,12 @@ output: github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+```
+
+```{r}
+library(tidyverse)
 ```
 
 # Introduction
@@ -13,8 +19,9 @@ knitr::opts_chunk$set(echo = FALSE)
 # Data
 
 ```{r}
-
+energy <- readxl::read_excel('ENB2012_data.xlsx')
 ```
+
 
 # Analysis
 
