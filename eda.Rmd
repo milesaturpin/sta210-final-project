@@ -7,13 +7,47 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r}
+library(tidyverse)
+library(readxl)
+```
+
+
 # Exploratory Data Analysis
 
 NOTE: split up to avoid merge conflicts
 ### Miles 
 
 ```{r}
+energy <- readxl::read_excel('data/ENB2012_data.xlsx') %>% 
+  rename(rel.compact = X1,
+         surf.area = X2,
+         wall.area = X3,
+         roof.area = X4,
+         height = X5,
+         orient = X6,
+         glaze.area = X7,
+         glaze.dist = X8,
+         heat.load = Y1,
+         cool.load = Y2) %>% 
+  select(-cool.load)
+glimpse(energy)
+```
 
+```{r}
+energy %>% 
+  gather() %>% 
+  mutate(key = as.factor(key)) %>% 
+  ggplot(aes(x=value)) + geom_histogram() + facet_wrap(~ key, scales='free')
+```
+
+```{r}
+energy  %>% pairs()
+```
+
+```{r}
+model <- lm(heat.load ~ .*., data=energy)
+summary(model)
 ```
 
 ### Shamikh

@@ -12,17 +12,83 @@ knitr::opts_chunk$set(warning = FALSE)
 
 ```{r}
 library(tidyverse)
+library(readxl)
 ```
 
-# Introduction
+## Introduction
 
-# Data
+We’ll be taking a look at an energy efficiency dataset from the UCI Machine Learning Repository. The data features simulations of various buildings’ shapes and their associated heating and cooling loads (both of which are real-valued), which are important indicators of a building’s energy efficiency. We’re interested in creating a regression model to determine features of buildings--such as relative compactness, surface area, wall area, roof area, overall height, orientation, glazing area, and glazing area distribution (as well as interaction effects)--that have an impact on the energy efficiency of a building.
+
+Based on these findings, we’re hoping to be able to provide insight into how to design energy efficient buildings, and the quantitative impact that each significant feature has on energy efficiency.
+
+
+## Data
+
+We found this dataset through the UCI Machine Learning Repository (https://archive.ics.uci.edu/ml/datasets/Energy+efficiency). The dataset was created by Angeliki Xifara and was processed by Athanasios Tsanas at the University of Oxford, UK. This dataset contains 768 building shapes, parameterized by 6 numerical features and 2 categorical features, which can be used to predict the heating loads of the buildings. 
+  
+#### Variables
+  
+1. Relative Compactness (`rel.compact`)
+
+2. Surface Area (`surf.area`) - m²
+
+3. Wall Area (`wall.area`) - m²
+
+4. Roof Area (`roof.area`) - m²
+
+5. Overall Height (`height`) - m
+
+6. Orientation (`orient`) - 2:North, 3:East, 4:South, 5:West
+
+7. Glazing Area (`glaze.area`) - 0%, 10%, 25%, 40% (of floor area)
+
+8. Glazing Area Distribution (`glaze.dist`) - 1:Uniform, 2:North, 3:East, 4:South, 5:West
+
+9. Heating Load (`heat.load`) - kWh/m²
+
+We can see an overview of the data with the `glimpse()` function below.
 
 ```{r}
-energy <- readxl::read_excel('ENB2012_data.xlsx')
+energy <- readxl::read_excel('data/ENB2012_data.xlsx') %>% 
+  rename(rel.compact = X1,
+         surf.area = X2,
+         wall.area = X3,
+         roof.area = X4,
+         height = X5,
+         orient = X6,
+         glaze.area = X7,
+         glaze.dist = X8,
+         heat.load = Y1,
+         cool.load = Y2) %>% 
+  mutate(orient = as.factor(orient),
+         glaze.dist = as.factor(glaze.dist)) %>% 
+  select(-cool.load)
+glimpse(energy)
+```
+
+```{r}
+#energy %>% 
+#  gather() %>% 
+#  mutate(key = as.factor(key)) %>% 
+#  ggplot(aes(x=value)) + geom_histogram() + facet_wrap(~ key, scales='free')
+```
+
+```{r}
+#energy  %>% pairs()
+```
+
+```{r}
+#model <- lm(heat.load ~ .*., data=energy)
+#summary(model)
 ```
 
 
-# Analysis
+## Analysis
 
-# Reference
+With this data, we hope to predict the heating load of a residential building, with just simple information about the building's physical construction. Regression will allow us to infer the relationship between heating load of a building and various parameters like the height, roof area, glaze area, orientation, compactness, and surface area of the building.
+
+## References
+
+1. Energy efficiency dataset: https://archive.ics.uci.edu/ml/datasets/Energy+efficiency?fbclid=IwAR2QxKXSIajGPCb1608EiQfHf5GoF0KWhjFg-HPp8GtBqNUgdWldBJBPinc
+
+2. Accurate quantitative estimation of energy performance of residential buildings using statistical machine learning tools: https://www.sciencedirect.com/science/article/pii/S037877881200151X?via%3Dihub
