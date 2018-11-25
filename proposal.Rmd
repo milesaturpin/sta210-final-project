@@ -1,7 +1,8 @@
 ---
-title: "Proposal"
+title: "Project Proposal"
 author: "Miles Turpin, Shamikh Hossain, Shrey Gupta"
-output: github_document
+date: "11/10/2018"
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -17,14 +18,13 @@ library(readxl)
 
 ## Introduction
 
-We’ll be taking a look at an energy efficiency dataset from the UCI Machine Learning Repository. The data features simulations of various buildings’ shapes and their associated heating and cooling loads (both of which are real-valued), which are important indicators of a building’s energy efficiency. We’re interested in creating a regression model to determine features of buildings--such as relative compactness, surface area, wall area, roof area, overall height, orientation, glazing area, and glazing area distribution (as well as interaction effects)--that have an impact on the energy efficiency of a building.
+We’ll be taking a look at an energy efficiency dataset from the UCI Machine Learning Repository. The data features simulations of various buildings’ shapes and their associated heating and cooling loads (both of which are real-valued), which are important indicators of a building’s energy efficiency. We’re interested in creating a regression model to determine the key features of buildings--such as relative compactness, surface area, wall area, roof area, overall height, orientation, glazing area, and glazing area distribution (as well as interaction effects)--that have an impact on energy efficiency.
 
-Based on these findings, we’re hoping to be able to provide insight into how to design energy efficient buildings, and the quantitative impact that each significant feature has on energy efficiency.
-
+Based on these findings, we’re hoping to be able to provide insight into how to design energy efficient buildings, and the quantitative impact that each significant feature has on energy efficiency. This is important information because of the growing emphasis placed on energy performance of both old and newly built buildings, and the considerations of improved energy conservation techniques.  
 
 ## Data
 
-We found this dataset through the UCI Machine Learning Repository (https://archive.ics.uci.edu/ml/datasets/Energy+efficiency). The dataset was created by Angeliki Xifara and was processed by Athanasios Tsanas at the University of Oxford, UK. This dataset contains 768 building shapes, parameterized by 6 numerical features and 2 categorical features, which can be used to predict the heating loads of the buildings. 
+We found this dataset through the UCI Machine Learning Repository (https://archive.ics.uci.edu/ml/datasets/Energy+efficiency). The dataset was created by Angeliki Xifara and was processed by Athanasios Tsanas at the University of Oxford, UK, by means of simulation on environmental/architectural analysis software *Ecotect*. This dataset contains 768 samples of building shapes, parameterized by 6 numerical features and 2 categorical features, which can be used to predict the heating loads of the buildings. 
   
 #### Variables
   
@@ -46,10 +46,12 @@ We found this dataset through the UCI Machine Learning Repository (https://archi
 
 9. Heating Load (`heat.load`) - kWh/m²
 
+10. Cooling Load (`cool.load`) - kWh/m²
+
 We can see an overview of the data with the `glimpse()` function below.
 
 ```{r}
-energy <- readxl::read_excel('data/ENB2012_data.xlsx') %>% 
+energy <- readxl::read_excel('ENB2012_data.xlsx') %>% 
   rename(rel.compact = X1,
          surf.area = X2,
          wall.area = X3,
@@ -61,8 +63,7 @@ energy <- readxl::read_excel('data/ENB2012_data.xlsx') %>%
          heat.load = Y1,
          cool.load = Y2) %>% 
   mutate(orient = as.factor(orient),
-         glaze.dist = as.factor(glaze.dist)) %>% 
-  select(-cool.load)
+         glaze.dist = as.factor(glaze.dist))
 glimpse(energy)
 ```
 
@@ -85,10 +86,24 @@ glimpse(energy)
 
 ## Analysis
 
-With this data, we hope to predict the heating load of a residential building, with just simple information about the building's physical construction. Regression will allow us to infer the relationship between heating load of a building and various parameters like the height, roof area, glaze area, orientation, compactness, and surface area of the building.
+With this data, we hope to predict the heating load and cooling load of a residential building, with just simple information about the building's physical construction. We hope to acquire more information about the relationship between heating and cooling loads of a building and a diverse set of parameters such as the height, roof area, glaze area, orientation, compactness, and surface area of the building.  
+Since we seek to estimate and analyze the heating and cooling loads of a building given its physical characteristics and design decisions made during the construction process, our **response variables** will be heating load and cooling load, both measured in $kWh/m^2$. These values determine key requirements for specific heating/cooling equipment needed to maintain stable air conditions inside the building. 
+We will therefore want to run two separate regression analyses to answer the questions:   
+1. How is a building's **Heating Load** (HL) affected by its physical characteristics? 
+2. How is a building's **Cooling Load** (CL) affected by its physical characteristics? 
+The buildings in the data set have the same volume but differing dimensions, surface areas, and orientations. This brings us to our explanatory variables, which we will be using to try and explain the variation in our response variables. These diverse input variables represent key choices made in architectural and design phases of building construction, and have been used to study energy efficiency in past literature.   
+The first is surface area, a numerical feature measured in $m^2$, of the building design. This is done in a geometric sense and is a measure on purely the exterior "shell" of the building, not accounting for interior contents or their surface areas. The building's wall area and roof area are more numerical explanatory variables, closely related to surface area, with units of $m^2$, and we also have the building's overall height in meters. Next, we have a Relative Compactness coefficient, a numerical feature with values between 0 and 1, with a greater value indicating a more compact design in which the surfaces of the building are closer together. Next is orientation of the building, a categorical variable taking on values of 2, 3, 4, and 5, representing North, East, South and West respectively. Finally, we have two variables related to glazing area, which is described by the US Dept. of Energy as the internal surface area of a building used for windows, doors, and other features. We first have glazing area, a feature that is one of 0%, 10%, 25%, and 40%, which indicate the percentage of the building's floor area that constitutes glazing area. For each of these different categories of glazing area, there are different distributions applied, the details of these can be found in section 1 in the Additional Information section.   
+
+The next step is to determine what hypothesis tests/experiments we will be running using our data. We cannot ignore the foundational hypothesis test of linear regression models, in which the Null Hypothesis states that, in a regression model predicting the heating and cooling loads, all coefficients of the explanatory variables are equal to 0- $H_0:\beta_{1} = \beta_{2} = . . . = \beta_{8} = 0$ and the Alternative Hypothesis states that at least one of them is not equal to zero. After this preliminary experiment, however, we will be taking a deep dive into some of the interaction effects in our model to determine if some of the features have impacts when combined with the impacts of other features, and we can test for these systematically using nested F-tests and analysis of variance. For example, we will investigate whether the variables of height and surface area have a significant interaction that is useful for predicting heating or cooling loads. We are curious about these two because they are related physical characteristics, but it would also be interesting to look at variables that seem unrelated, such as Overall Height and Glazing Area. Naturally, for these tests the Null Hypothesis will always state that that coefficients of the additional interaction variables are zero, while the alternative hypothesis will state that at least one of the additional interaction terms are non-zero.   
+The interesting physical and architectural characteristics in our data provide the basis for a lot of interesting interactions. For example, one other thing that we are curious about is whether a building's cooling load is a meaningful predictor of its heating load, or vice versa- it will be very interesting to see if these two output variables can be used as input to predict the other. Perhaps they even have interaction effects with other variables! For example, tall buildings tend to be able to maintain cooler temperatures easier. Is there perhaps an interaction between Overall Height and Cooling Load that can predict a change in Heating Load? This is a question that we will definitely be investigating during our extended regression analysis, in which the null/alternative hypotheses will be similar to what was described above for testing for interactions. Our thought is that this interaction effect's coefficient will be negative (in the regression model predicting heating load), indicating a negative correlation with the heating load. 
 
 ## References
 
-1. Energy efficiency dataset: https://archive.ics.uci.edu/ml/datasets/Energy+efficiency?fbclid=IwAR2QxKXSIajGPCb1608EiQfHf5GoF0KWhjFg-HPp8GtBqNUgdWldBJBPinc
+1. Energy efficiency dataset: https://archive.ics.uci.edu/ml/datasets/Energy+efficiency
 
 2. Accurate quantitative estimation of energy performance of residential buildings using statistical machine learning tools: https://www.sciencedirect.com/science/article/pii/S037877881200151X?via%3Dihub
+
+
+## Additional Information 
+
+1. (1) Uniform: 25% glazing on each side of the building; (2) North: 55% of glazing on the north side and 15% on the other sides; (3) South: 55% of glazing on the south side and 15% on the other sides; (4) East: 55% of glazing on the east side and 15% on the other sides. (5)  
