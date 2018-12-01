@@ -1,0 +1,172 @@
+---
+title: "STA 210 Project"
+author: "Shamikh Hossain"
+output: pdf_document
+---
+
+```{r setup, message=F, include=F}
+knitr::opts_chunk$set(echo = TRUE)
+options(knitr.kable.NA = '')
+```
+
+```{r,include=FALSE, message=FALSE}
+library("STA210")
+library("readr")
+library("dplyr")
+library("ggplot2")
+library("broom")
+library("knitr")
+library("cowplot")
+library("tidyverse")
+library("readxl")
+library("purrr")
+library("tidyr")
+```
+
+# Section 1: Introduction
+
+In this analysis we take a look at an energy efficiency dataset featuring simulated designs of various buildings shapes and properties along with their associated heating and cooling loads, which are important indicators of a building’s energy efficiency. We are interested in using a regression model to determine the key physical properties of the building that, independently or in interaction with other characteristics, have an impact on the building's energy efficiency.
+Based on these findings, we’re hoping to be able to provide insight into specifics on the designing of energy-efficient buildings, and the quantitative impact that each significant feature has on energy efficiency. This is important information because of the growing emphasis placed on energy performance of both old and newly built buildings, and the considerations of improved energy conservation techniques in development projects in countries all around the world. 
+
+# Section 2: The Data
+
+This data set was created by Angeliki Xifara and was processed by Dr. Athanasios Tsanas at the University of Oxford, UK, by means of simulation on the environmental/architectural analysis software program, *Ecotect*. The software allows civil and environmental engineers to design and simulate a building's performance in the earliest stages, using just its conceptual design. The data set contains 768 samples of building shapes, parameterized by six numerical features and two categorical features, and two potential target variables, heating load and cooling load.
+
+## Variables
+  
+1. Relative Compactness (`rel.compact`)
+2. Surface Area (`surface.area`) - m²
+3. Wall Area (`wall.area`) - m²
+4. Roof Area (`roof.area`) - m²
+5. Overall Height (`height`) - m
+6. Orientation (`orientation`) - 2:North, 3:East, 4:South, 5:West
+7. Glazing Area (`glazing.area`) - 0%, 10%, 25%, 40% (of floor area)
+8. Glazing Area Distribution (`glazing.dist`) - 1:Uniform, 2:North, 3:East, 4:South, 5:West
+9. Heating Load (`heating.load`) - kWh/m²
+10. Cooling Load (`cooling.load`) - kWh/m²
+
+```{r}
+energy <- readxl::read_excel('ENB2012_data.xlsx') %>% 
+  rename(rel.compact = X1,
+         surface.area = X2,
+         wall.area = X3,
+         roof.area = X4,
+         height = X5,
+         orientation = X6,
+         glazing.area = X7,
+         glazing.dist = X8,
+         heating.load = Y1,
+         cooling.load = Y2) %>% 
+  mutate(orientation = as.factor(orientation),
+         glazing.dist = as.factor(glazing.dist))
+glimpse(energy)
+```
+
+```{r}
+# Scatter plot matrix of variables vs. heating load 
+pairs(heating.load ~ rel.compact + surface.area + wall.area + roof.area + height, data = energy)
+```
+
+```{r}
+pairs(heating.load ~ orientation + glazing.area + glazing.dist + cooling.load, data = energy)
+```
+
+```{r}
+sapply(energy, summary) # Use lapply for list 
+```
+
+
+
+```{r}
+# Plot the distributions of the numerical features
+energy %>%
+  keep(is.numeric) %>% 
+  gather() %>% 
+  ggplot(aes(value)) +
+    facet_wrap(~ key, scales = "free") +
+    geom_histogram()
+```
+
+
+
+```{r}
+energy %>%
+  keep(is.numeric) %>%                     # Keep only numeric columns
+  gather() %>%                             # Convert to key-value pairs
+  ggplot(aes(value)) +                     # Plot the values
+    facet_wrap(~ key, scales = "free") +   # In separate panels
+    geom_density()                         # as density
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Section X: Discussion 
+
+- Real world impact of findings 
+- Balance with the fact that the dataset is simulated
+
