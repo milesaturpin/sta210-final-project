@@ -191,22 +191,134 @@ train.pred %>% filter(abs(resid.stand) > 3)
 
 
 ```{r}
-energy %>%
-  filter(height == 3.5) %>% 
-  keep(is.numeric) %>% 
-  gather() %>% 
-  ggplot(aes(value)) +
-    facet_wrap(~ key, scales = "free") +
-    geom_histogram()
+#energy %>%
+#  filter(height == 3.5) %>% 
+#  keep(is.numeric) %>% 
+#  gather() %>% 
+#  ggplot(aes(value)) +
+#    facet_wrap(~ key, scales = "free") +
+#    geom_histogram()
 
 energy %>%
-  filter(height == 7) %>% 
-  keep(is.numeric) %>% 
-  gather() %>% 
-  ggplot(aes(x=value, color=height)) +
-    facet_wrap(~ key, scales = "free") +
-    geom_histogram()
+  #filter(height == 7) %>% 
+  #dplyr::select(rel.compact, surface.area, wall.area, roof.area, height, heating.load) %>% 
+  #keep(is.numeric, height) %>% 
+  dplyr::select(-cooling.load) %>% 
+  gather(key='var', value='value',-surface.area, -heating.load) %>% 
+  ggplot(aes(x=value, y=heating.load, color=surface.area)) +
+    facet_wrap(~ var, scales = "free") +
+    geom_point()
+
+energy %>%
+  #filter(height == 7) %>% 
+  #dplyr::select(rel.compact, surface.area, wall.area, roof.area, height, heating.load) %>% 
+  #keep(is.numeric, height) %>% 
+  dplyr::select(-cooling.load) %>% 
+  gather(key='var', value='value',-height, -heating.load) %>% 
+  ggplot(aes(x=value, y=heating.load, color=height)) +
+    facet_wrap(~ var, scales = "free") +
+    geom_point()
+
+energy %>%
+  #filter(height == 7) %>% 
+  #dplyr::select(rel.compact, surface.area, wall.area, roof.area, height, heating.load) %>% 
+  #keep(is.numeric, height) %>% 
+  dplyr::select(-cooling.load) %>% 
+  gather(key='var', value='value',-rel.compact, -heating.load) %>% 
+  ggplot(aes(x=value, y=heating.load, color=rel.compact)) +
+    facet_wrap(~ var, scales = "free") +
+    geom_point()
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+df <- train
+
+model.interact <- lm(heating.load ~ . + surface.area*(rel.compact + height + roof.area + wall.area) + 
+                       rel.compact*(height + roof.area + wall.area), data=df)
+
+#model2 <- lm(heating.load ~ (rel.compact + surface.area + wall.area + roof.area + height + orientation + glazing.area + glazing.dist) * (rel.compact + surface.area + wall.area + roof.area + height + orientation + glazing.area + glazing.dist), data=df)
+
+anova(model, model.interact)
+
+#reduced <- stepAIC(model.interact)
+summary(model.interact)
+```
+
+```{r}
+train.pred.interact <- train %>% 
+  mutate(pred = predict.lm(model.interact, train),
+         resid.stand = rstandard(model.interact),
+         resid = resid(model.interact))
+
+train.pred.interact %>% 
+  ggplot(aes(x=pred, y=resid.stand)) + geom_point()
+
+train.pred.interact %>% 
+  #dplyr::select(glazing.dist, rel.compact, surface.area,  resid) %>% 
+  dplyr::select(-pred, -heating.load, -cooling.load, -resid) %>% 
+  gather(key="var", value="value", -resid.stand) %>% 
+  mutate(value = as.numeric(value)) %>% 
+  ggplot(aes(x=value, y=resid.stand)) + 
+  geom_point() +
+  #geom_jitter(size=1) + 
+  #geom_boxplot() +
+  facet_wrap( ~ var, ncol=3, scales = 'free_x')
+```
+
+```{r}
+train.pred.interact %>% 
+  ggplot(aes(x=resid.stand)) + geom_histogram()
+
+qqnorm(train.pred.interact$resid.stand)
+```
+
+```{r}
+test.pred.interact <- test %>% 
+  mutate(pred = predict.lm(model.interact, test)) %>% 
+  mutate(resid = pred - heating.load,
+         resid.stand = ((pred - heating.load) - mean(pred - heating.load)) / sd(pred - heating.load))
+  
+print('MSE Train')
+print(mean(train.pred.interact$resid^2))
+print('MSE Val')
+print(mean(test.pred.interact$resid^2))
+
+print('Train R^2')
+RSS = sum(train.pred.interact$resid^2)
+TSS = sum((train.pred.interact$heating.load - mean(train.pred.interact$heating.load))^2)
+print(1 - RSS/TSS)
+
+print('Test R^2')
+RSS = sum(test.pred.interact$resid^2)
+TSS = sum((test.pred.interact$heating.load - mean(test.pred.interact$heating.load))^2)
+print(1 - RSS/TSS)
+```
+
+```{r}
+train.pred.interact %>% filter(abs(resid.stand) > 3)
+```
+
+
+
+
+
+
+
+
+
+
 
 
 
