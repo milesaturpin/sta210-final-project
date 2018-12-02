@@ -87,7 +87,7 @@ energy %>%
     geom_histogram()
 ```
 
-
+### INCLUDE
 
 ```{r}
 energy %>%
@@ -410,7 +410,7 @@ train.pred.interact2 %>% filter(abs(resid.stand) > 3)
 
 ### Part IV
 
-
+### INCLUDE
 
 ```{r}
 df <- train %>% 
@@ -425,8 +425,8 @@ model.interact3 <- lm(heating.load ~ . - cooling.load +
 
 anova(model.interact2, model.interact3)
 
-#reduced <- stepAIC(model.interact)
-summary(model.interact3)
+reduced <- stepAIC(model.interact3)
+summary(reduced)
 ```
 
 ```{r}
@@ -441,10 +441,10 @@ train.pred.interact3 %>%
 train.pred.interact3 %>% 
   #dplyr::select(glazing.dist, rel.compact, surface.area,  resid) %>% 
   dplyr::select(-pred, -heating.load, -cooling.load, -resid) %>% 
-  gather(key="var", value="value", -resid.stand) %>% 
+  gather(key="var", value="value", -resid.stand, -glazing.dist) %>% 
   mutate(value = as.numeric(value)) %>% 
-  ggplot(aes(x=value, y=resid.stand)) + 
-  geom_point() +
+  ggplot(aes(x=value, y=resid.stand, color=glazing.dist)) + 
+  geom_point(alpha=0.5) +
   #geom_jitter(size=1) + 
   #geom_boxplot() +
   facet_wrap( ~ var, ncol=3, scales = 'free_x')
@@ -463,10 +463,10 @@ test.pred.interact3 <- test %>%
   mutate(resid = pred - heating.load,
          resid.stand = ((pred - heating.load) - mean(pred - heating.load)) / sd(pred - heating.load))
   
-print('MSE Train')
-print(mean(train.pred.interact3$resid^2))
-print('MSE Val')
-print(mean(test.pred.interact3$resid^2))
+print('MAE Train')
+print(mean(abs(train.pred.interact3$resid)))
+print('MAE Val')
+print(mean(abs(test.pred.interact3$resid)))
 
 print('Train R^2')
 RSS = sum(train.pred.interact3$resid^2)
@@ -486,11 +486,6 @@ train.pred.interact3 %>% arrange(desc(abs(resid.stand)))
 ```{r}
 train.pred.interact3
 ```
-
-
-
-
-
 
 
 
