@@ -228,6 +228,16 @@ energy %>%
   ggplot(aes(x=value, y=heating.load, color=rel.compact)) +
     facet_wrap(~ var, scales = "free") +
     geom_point()
+
+energy %>%
+  #filter(height == 7) %>% 
+  #dplyr::select(rel.compact, surface.area, wall.area, roof.area, height, heating.load) %>% 
+  #keep(is.numeric, height) %>% 
+  dplyr::select(-cooling.load) %>% 
+  gather(key='var', value='value',-glazing.area, -heating.load) %>% 
+  ggplot(aes(x=value, y=heating.load, color=glazing.area)) +
+    facet_wrap(~ var, scales = "free") +
+    geom_point()
 ```
 
 
@@ -235,9 +245,15 @@ energy %>%
 
 
 
+```{r}
+train
+```
 
 
 
+```{r}
+cor(train %>% keep(is.numeric))
+```
 
 
 
@@ -245,8 +261,10 @@ energy %>%
 ```{r}
 df <- train
 
-model.interact <- lm(heating.load ~ . + surface.area*(rel.compact + height + roof.area + wall.area) + 
-                       rel.compact*(height + roof.area + wall.area), data=df)
+model.interact <- lm(heating.load ~ . - cooling.load + 
+                        #wall.area*(glazing.area + glazing.dist) + 
+                        surface.area*(rel.compact + height + roof.area + wall.area) + 
+                        rel.compact*(height + wall.area), data=df)
 
 #model2 <- lm(heating.load ~ (rel.compact + surface.area + wall.area + roof.area + height + orientation + glazing.area + glazing.dist) * (rel.compact + surface.area + wall.area + roof.area + height + orientation + glazing.area + glazing.dist), data=df)
 
@@ -313,8 +331,161 @@ train.pred.interact %>% filter(abs(resid.stand) > 3)
 
 
 
+### Part III
 
 
+
+
+```{r}
+df <- train
+
+model.interact2 <- lm(heating.load ~ . - cooling.load + 
+                        wall.area*(glazing.area + glazing.dist) + 
+                        surface.area*(rel.compact + height + roof.area + wall.area) + 
+                        rel.compact*(height + wall.area), data=df)
+
+#model2 <- lm(heating.load ~ (rel.compact + surface.area + wall.area + roof.area + height + orientation + glazing.area + glazing.dist) * (rel.compact + surface.area + wall.area + roof.area + height + orientation + glazing.area + glazing.dist), data=df)
+
+anova(model.interact, model.interact2)
+
+#reduced <- stepAIC(model.interact)
+summary(model.interact2)
+```
+
+```{r}
+train.pred.interact2 <- train %>% 
+  mutate(pred = predict.lm(model.interact2, train),
+         resid.stand = rstandard(model.interact2),
+         resid = resid(model.interact2))
+
+train.pred.interact2 %>% 
+  ggplot(aes(x=pred, y=resid.stand)) + geom_point()
+
+train.pred.interact2 %>% 
+  #dplyr::select(glazing.dist, rel.compact, surface.area,  resid) %>% 
+  dplyr::select(-pred, -heating.load, -cooling.load, -resid) %>% 
+  gather(key="var", value="value", -resid.stand) %>% 
+  mutate(value = as.numeric(value)) %>% 
+  ggplot(aes(x=value, y=resid.stand)) + 
+  geom_point() +
+  #geom_jitter(size=1) + 
+  #geom_boxplot() +
+  facet_wrap( ~ var, ncol=3, scales = 'free_x')
+```
+
+```{r}
+train.pred.interact2 %>% 
+  ggplot(aes(x=resid.stand)) + geom_histogram()
+
+qqnorm(train.pred.interact2$resid.stand)
+```
+
+```{r}
+test.pred.interact2 <- test %>% 
+  mutate(pred = predict.lm(model.interact2, test)) %>% 
+  mutate(resid = pred - heating.load,
+         resid.stand = ((pred - heating.load) - mean(pred - heating.load)) / sd(pred - heating.load))
+  
+print('MSE Train')
+print(mean(train.pred.interact2$resid^2))
+print('MSE Val')
+print(mean(test.pred.interact2$resid^2))
+
+print('Train R^2')
+RSS = sum(train.pred.interact2$resid^2)
+TSS = sum((train.pred.interact2$heating.load - mean(train.pred.interact2$heating.load))^2)
+print(1 - RSS/TSS)
+
+print('Test R^2')
+RSS = sum(test.pred.interact2$resid^2)
+TSS = sum((test.pred.interact2$heating.load - mean(test.pred.interact2$heating.load))^2)
+print(1 - RSS/TSS)
+```
+
+```{r}
+train.pred.interact2 %>% filter(abs(resid.stand) > 3)
+```
+
+
+
+### Part IV
+
+
+
+```{r}
+df <- train %>% 
+  mutate(glazing.dist = relevel(glazing.dist, ref="5"))
+
+model.interact3 <- lm(heating.load ~ . - cooling.load + 
+                        wall.area*(roof.area + glazing.area + glazing.dist) + 
+                        surface.area*(rel.compact + height + roof.area + wall.area  + glazing.area + glazing.dist) + 
+                        rel.compact*(height + wall.area), data=df)
+
+#model2 <- lm(heating.load ~ (rel.compact + surface.area + wall.area + roof.area + height + orientation + glazing.area + glazing.dist) * (rel.compact + surface.area + wall.area + roof.area + height + orientation + glazing.area + glazing.dist), data=df)
+
+anova(model.interact2, model.interact3)
+
+#reduced <- stepAIC(model.interact)
+summary(model.interact3)
+```
+
+```{r}
+train.pred.interact3 <- train %>% 
+  mutate(pred = predict.lm(model.interact3, train),
+         resid.stand = rstandard(model.interact3),
+         resid = resid(model.interact3))
+
+train.pred.interact3 %>% 
+  ggplot(aes(x=pred, y=resid.stand)) + geom_point()
+
+train.pred.interact3 %>% 
+  #dplyr::select(glazing.dist, rel.compact, surface.area,  resid) %>% 
+  dplyr::select(-pred, -heating.load, -cooling.load, -resid) %>% 
+  gather(key="var", value="value", -resid.stand) %>% 
+  mutate(value = as.numeric(value)) %>% 
+  ggplot(aes(x=value, y=resid.stand)) + 
+  geom_point() +
+  #geom_jitter(size=1) + 
+  #geom_boxplot() +
+  facet_wrap( ~ var, ncol=3, scales = 'free_x')
+```
+
+```{r}
+train.pred.interact3 %>% 
+  ggplot(aes(x=resid.stand)) + geom_histogram()
+
+qqnorm(train.pred.interact3$resid.stand)
+```
+
+```{r}
+test.pred.interact3 <- test %>% 
+  mutate(pred = predict.lm(model.interact3, test)) %>% 
+  mutate(resid = pred - heating.load,
+         resid.stand = ((pred - heating.load) - mean(pred - heating.load)) / sd(pred - heating.load))
+  
+print('MSE Train')
+print(mean(train.pred.interact3$resid^2))
+print('MSE Val')
+print(mean(test.pred.interact3$resid^2))
+
+print('Train R^2')
+RSS = sum(train.pred.interact3$resid^2)
+TSS = sum((train.pred.interact3$heating.load - mean(train.pred.interact3$heating.load))^2)
+print(1 - RSS/TSS)
+
+print('Test R^2')
+RSS = sum(test.pred.interact3$resid^2)
+TSS = sum((test.pred.interact3$heating.load - mean(test.pred.interact3$heating.load))^2)
+print(1 - RSS/TSS)
+```
+
+```{r}
+train.pred.interact3 %>% arrange(desc(abs(resid.stand)))
+```
+
+```{r}
+train.pred.interact3
+```
 
 
 
