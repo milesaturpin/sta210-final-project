@@ -122,7 +122,7 @@ model <- lm(heating.load ~ ., data=df)
 
 #anova(model, model2)
 
-reduced <- stepAIC(model)
+reduced <- step(model)
 summary(reduced)
 ```
 
@@ -270,7 +270,7 @@ model.interact <- lm(heating.load ~ . - cooling.load +
 
 anova(model, model.interact)
 
-#reduced <- stepAIC(model.interact)
+#reduced <- step(model.interact)
 summary(model.interact)
 ```
 
@@ -348,7 +348,7 @@ model.interact2 <- lm(heating.load ~ . - cooling.load +
 
 anova(model.interact, model.interact2)
 
-#reduced <- stepAIC(model.interact)
+#reduced <- step(model.interact)
 summary(model.interact2)
 ```
 
@@ -425,7 +425,7 @@ model.interact3 <- lm(heating.load ~ . - cooling.load +
 
 anova(model.interact2, model.interact3)
 
-reduced <- stepAIC(model.interact3)
+reduced <- step(model.interact3)
 summary(reduced)
 ```
 
