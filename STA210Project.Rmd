@@ -1,6 +1,6 @@
 ---
 title: "STA 210 Project"
-author: "Shamikh Hossain"
+author: "Shamikh Hossain et al."
 output: pdf_document
 ---
 
@@ -66,6 +66,44 @@ glimpse(energy)
 # Scatter plot matrix of variables vs. heating load 
 pairs(heating.load ~ rel.compact + surface.area + wall.area + roof.area + height, data = energy)
 ```
+
+
+```{r}
+# Scatter plot matrix of variables vs. heating load 
+#energy %>% 
+#  dplyr::select(heating.load, rel.compact, surface.area, wall.area, roof.area, height) %>% 
+#  gather(key="key", value="value", -heating.load) %>% 
+#  ggplot(aes(x=value, y=heating.load)) + geom_jitter()  + facet_wrap(~ key, scales='free_x')
+
+energy %>% 
+  dplyr::select(heating.load, rel.compact) %>% 
+  ggplot(aes(x=rel.compact, y=heating.load)) + geom_jitter() +
+  labs(title="Heating Load vs. Relative Compactness")
+
+energy %>% 
+  dplyr::select(heating.load, surface.area) %>% 
+  ggplot(aes(x=surface.area, y=heating.load)) + geom_jitter() +
+  labs(title="Heating Load vs. Surface Area")
+
+energy %>% 
+  dplyr::select(heating.load, wall.area) %>% 
+  ggplot(aes(x=wall.area, y=heating.load)) + geom_jitter() +
+  labs(title="Heating Load vs. Wall Area")
+
+energy %>% 
+  dplyr::select(heating.load, roof.area) %>% 
+  ggplot(aes(x=roof.area, y=heating.load)) + geom_jitter() +
+  labs(title="Heating Load vs. Roof Area")
+
+energy %>% 
+  dplyr::select(heating.load, height) %>% 
+  ggplot(aes(x=height, y=heating.load)) + geom_jitter() +
+  labs(title="Heating Load vs. Height")
+  
+#pairs(heating.load ~ rel.compact + surface.area + wall.area + roof.area + height, data = energy)
+```
+
+
 
 ```{r}
 pairs(heating.load ~ orientation + glazing.area + glazing.dist + cooling.load, data = energy)
@@ -133,7 +171,8 @@ train.pred <- train %>%
          resid = resid(model))
 
 train.pred %>% 
-  ggplot(aes(x=pred, y=resid.stand)) + geom_point()
+  ggplot(aes(x=pred, y=resid.stand)) + geom_point() +
+  labs(title = "Standarized Residuals vs. Predicted")
 
 train.pred %>% 
   #dplyr::select(glazing.dist, rel.compact, surface.area,  resid) %>% 
@@ -150,7 +189,8 @@ train.pred %>%
 
 ```{r}
 train.pred %>% 
-  ggplot(aes(x=resid.stand)) + geom_histogram()
+  ggplot(aes(x=resid.stand)) + geom_histogram() +
+  labs(title='Histogram of Standardized Residuals')
 
 qqnorm(train.pred$resid.stand)
 ```
@@ -436,14 +476,15 @@ train.pred.interact3 <- train %>%
          resid = resid(model.interact3))
 
 train.pred.interact3 %>% 
-  ggplot(aes(x=pred, y=resid.stand)) + geom_point()
+  ggplot(aes(x=pred, y=resid.stand)) + geom_point() +
+  labs(title = "Standarized Residuals vs. Predicted")
 
 train.pred.interact3 %>% 
   #dplyr::select(glazing.dist, rel.compact, surface.area,  resid) %>% 
   dplyr::select(-pred, -heating.load, -cooling.load, -resid) %>% 
   gather(key="var", value="value", -resid.stand, -glazing.dist) %>% 
   mutate(value = as.numeric(value)) %>% 
-  ggplot(aes(x=value, y=resid.stand, color=glazing.dist)) + 
+  ggplot(aes(x=value, y=resid.stand)) + 
   geom_point(alpha=0.5) +
   #geom_jitter(size=1) + 
   #geom_boxplot() +
@@ -452,7 +493,8 @@ train.pred.interact3 %>%
 
 ```{r}
 train.pred.interact3 %>% 
-  ggplot(aes(x=resid.stand)) + geom_histogram()
+  ggplot(aes(x=resid.stand)) + geom_histogram() +
+  labs(title='Histogram of Standardized Residuals')
 
 qqnorm(train.pred.interact3$resid.stand)
 ```
